@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DISCO SHIQ</title>
+<link href="https://fonts.googleapis.com/css2?family=Monoton&family=Righteous&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pink:#ff2e93; --gold:#ffd23f; --cyan:#00e5ff; --lime:#b6ff00;
+    --purple:#8a2be2; --orange:#ff7a00; --night:#0e0021; --velvet:#2a0050;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{
+    font-family:'Space Grotesk',sans-serif;color:#fff;min-height:100vh;overflow-x:hidden;
+    background:radial-gradient(ellipse at 50% 0,#5a0a8a 0,var(--velvet) 40%,var(--night) 100%);background-attachment:fixed;
+  }
+
+  /* spotlight beams */
+  .beam{position:fixed;top:-5vh;width:34vw;height:120vh;z-index:0;pointer-events:none;mix-blend-mode:screen;opacity:.5;
+    clip-path:polygon(47% 0,53% 0,100% 100%,0 100%);transform-origin:50% 0;animation:sweep 7s ease-in-out infinite alternate}
+  .b1{left:-6vw;background:linear-gradient(var(--pink),transparent 85%)}
+  .b2{left:33vw;background:linear-gradient(var(--cyan),transparent 85%);animation-delay:-2s;animation-duration:9s}
+  .b3{right:-6vw;background:linear-gradient(var(--gold),transparent 85%);animation-delay:-4s;animation-duration:8s}
+  @keyframes sweep{from{transform:rotate(-28deg)}to{transform:rotate(28deg)}}
+
+  /* dance floor */
+  .floor{position:fixed;left:-60%;right:-60%;bottom:-8vh;height:42vh;z-index:0;pointer-events:none;opacity:.55;
+    transform:perspective(260px) rotateX(62deg);
+    background:repeating-conic-gradient(var(--pink) 0 25%,var(--cyan) 0 50%) 0 0/90px 90px;animation:hue 8s linear infinite}
+  @keyframes hue{to{filter:hue-rotate(360deg)}}
+
+  /* header */
+  header{position:sticky;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--night);
+    border-bottom:8px solid;border-image:repeating-linear-gradient(90deg,var(--pink) 0 16%,var(--orange) 0 32%,var(--gold) 0 48%,var(--lime) 0 64%,var(--cyan) 0 80%,var(--purple) 0 100%) 1}
+  .logo{font-family:'Monoton',cursive;font-size:30px;color:var(--pink);cursor:pointer;
+    text-shadow:0 0 6px var(--pink),0 0 18px var(--pink),0 0 36px var(--purple);animation:flick 4s infinite}
+  @keyframes flick{0%,92%,100%{opacity:1}94%{opacity:.4}96%{opacity:1}98%{opacity:.5}}
+  #burger{width:50px;height:50px;border:3px solid var(--gold);background:var(--night);border-radius:50%;cursor:pointer;
+    box-shadow:0 0 12px var(--gold),inset 0 0 10px var(--gold);display:flex;flex-direction:column;justify-content:center;gap:6px;padding:0 12px}
+  #burger span{display:block;height:4px;background:var(--gold);border-radius:3px;transition:.25s}
+  #burger.x span:nth-child(1){transform:translateY(10px) rotate(45deg)}
+  #burger.x span:nth-child(2){opacity:0}
+  #burger.x span:nth-child(3){transform:translateY(-10px) rotate(-45deg)}
+
+  .ticker{position:relative;z-index:5;background:var(--gold);color:var(--night);border-bottom:4px solid var(--pink);overflow:hidden;white-space:nowrap}
+  .ticker div{display:inline-block;padding:7px 0;font-family:'Righteous',cursive;font-size:14px;letter-spacing:1px;animation:run 28s linear infinite}
+  @keyframes run{to{transform:translateX(-50%)}}
+
+  main{position:relative;z-index:3;padding:10px 14px 90px;max-width:780px;margin:auto}
+
+  /* mirror ball */
+  .stage{position:relative;text-align:center;padding-top:6px}
+  .string{width:3px;height:70px;margin:0 auto;background:linear-gradient(#999,#fff)}
+  .ball{position:relative;width:120px;height:120px;margin:-2px auto 0;border-radius:50%;overflow:hidden;
+    background:radial-gradient(circle at 30% 28%,#fff 0,#d9d9ff 25%,#7a7aa8 60%,#2a2a45 100%);
+    box-shadow:0 0 40px 8px rgba(255,255,255,.45),0 0 90px 20px rgba(255,46,147,.4);animation:bob 3s ease-in-out infinite alternate}
+  .ball::before{content:"";position:absolute;inset:0;
+    background:
+      repeating-linear-gradient(90deg,rgba(14,0,33,.55) 0 2px,transparent 2px 15px),
+      repeating-linear-gradient(0deg,rgba(14,0,33,.55) 0 2px,transparent 2px 15px);
+    background-size:30px 100%,100% 15px;animation:spin 2.5s linear infinite}
+  .ball::after{content:"";position:absolute;inset:0;border-radius:50%;
+    background:radial-gradient(circle at 70% 70%,rgba(0,0,0,.5),transparent 60%),
+    radial-gradient(circle at 25% 25%,rgba(255,255,255,.9) 0,transparent 18%);mix-blend-mode:overlay}
+  @keyframes spin{to{background-position:30px 0,0 15px}}
+  @keyframes bob{to{transform:translateY(8px)}}
+
+  .neon{font-family:'Monoton',cursive;font-size:clamp(44px,15vw,88px);line-height:1;margin:14px 0 4px;color:#fff;
+    text-shadow:0 0 6px #fff,0 0 14px var(--pink),0 0 30px var(--pink),0 0 60px var(--purple);animation:glow 2.4s ease-in-out infinite alternate}
+  @keyframes glow{to{text-shadow:0 0 6px #fff,0 0 14px var(--cyan),0 0 30px var(--cyan),0 0 60px var(--pink)}}
+  .tag{font-family:'Righteous',cursive;font-size:17px;color:var(--gold);letter-spacing:2px}
+  .burst{position:absolute;right:-4px;top:40px;width:96px;height:96px;display:flex;align-items:center;justify-content:center;text-align:center;
+    background:var(--orange);color:var(--night);font-family:'Righteous',cursive;font-size:13px;line-height:1.1;
+    clip-path:polygon(50% 0,61% 14%,79% 8%,80% 27%,98% 33%,88% 50%,98% 67%,80% 73%,79% 92%,61% 86%,50% 100%,39% 86%,21% 92%,20% 73%,2% 67%,12% 50%,2% 33%,20% 27%,21% 8%,39% 14%);
+    animation:rot 6s linear infinite}
+  @keyframes rot{to{transform:rotate(360deg)}}
+
+  h2.sec{font-family:'Monoton',cursive;font-size:clamp(28px,9vw,50px);line-height:1.05;margin:26px 0 8px;color:#fff;
+    text-shadow:0 0 6px #fff,0 0 18px var(--cyan),0 0 40px var(--cyan)}
+  .sub{font-family:'Righteous',cursive;font-size:16px;color:var(--night);background:var(--gold);display:inline-block;padding:5px 14px;border-radius:30px;
+    box-shadow:0 0 18px var(--gold);margin-bottom:6px}
+
+  .tiles{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px}
+  .tile{position:relative;text-align:left;border-radius:20px;padding:14px 12px;cursor:pointer;min-height:150px;
+    background:rgba(14,0,33,.78);border:3px solid var(--c);box-shadow:0 0 14px var(--c),inset 0 0 18px -6px var(--c);transition:transform .15s}
+  .tile:active{transform:scale(.95)}
+  .tile .ic{font-size:34px;display:block;filter:drop-shadow(0 0 8px var(--c))}
+  .tile b{display:block;font-family:'Righteous',cursive;font-size:17px;margin:6px 0;color:var(--c);text-shadow:0 0 8px var(--c)}
+  .tile i{display:block;font-size:14px;font-style:normal;line-height:1.3;opacity:.9}
+  .tile em{position:absolute;top:-12px;right:-6px;background:var(--c);color:var(--night);font-family:'Righteous',cursive;font-style:normal;
+    font-size:13px;padding:3px 10px;border-radius:20px}
+  .t0{--c:var(--gold)}.t1{--c:var(--cyan)}.t2{--c:var(--lime)}.t3{--c:var(--pink)}.t4{--c:var(--orange)}.t5{--c:#d9b3ff}
+
+  .card{position:relative;border-radius:22px;padding:18px 16px;margin:28px 0;background:rgba(14,0,33,.82);
+    border:3px solid var(--c);box-shadow:0 0 16px var(--c),inset 0 0 24px -8px var(--c);animation:pop .45s both}
+  @keyframes pop{from{opacity:0;transform:translateY(24px) scale(.92)}}
+  .card:nth-child(6n+1){--c:var(--gold)}.card:nth-child(6n+2){--c:var(--cyan)}.card:nth-child(6n+3){--c:var(--pink)}
+  .card:nth-child(6n+4){--c:var(--lime)}.card:nth-child(6n+5){--c:var(--orange)}.card:nth-child(6n){--c:#d9b3ff}
+  .date{display:inline-block;background:var(--c);color:var(--night);font-family:'Righteous',cursive;font-size:13px;padding:4px 12px;border-radius:20px;margin-bottom:10px}
+  .new{position:absolute;top:-18px;right:10px;background:var(--pink);color:#fff;font-family:'Righteous',cursive;font-size:13px;padding:5px 12px;
+    border-radius:8px;box-shadow:0 0 14px var(--pink);animation:wob .9s ease-in-out infinite alternate}
+  @keyframes wob{to{transform:rotate(6deg) scale(1.1)}}
+  .card h3{font-family:'Righteous',cursive;font-size:25px;line-height:1.15;margin-bottom:8px;color:var(--c);text-shadow:0 0 10px var(--c)}
+  .card p{font-size:18px;line-height:1.5;white-space:pre-wrap}
+  .empty{font-family:'Righteous',cursive;color:var(--gold);margin-top:20px}
+  .back{margin-top:12px;border:3px solid var(--gold);background:transparent;color:var(--gold);font-family:'Righteous',cursive;font-size:15px;
+    padding:11px 18px;border-radius:30px;box-shadow:0 0 14px var(--gold);cursor:pointer}
+
+  #dim{position:fixed;inset:0;background:rgba(14,0,33,.75);z-index:45;display:none}
+  #dim.open{display:block}
+  nav{position:fixed;top:0;right:0;bottom:0;width:min(88vw,380px);z-index:50;padding:84px 18px 24px;overflow-y:auto;
+    background:linear-gradient(160deg,#5a0a8a,var(--night));border-left:5px solid var(--pink);box-shadow:-10px 0 40px rgba(255,46,147,.5);
+    transform:translateX(105%);transition:transform .35s cubic-bezier(.2,.9,.3,1.2)}
+  nav.open{transform:none}
+  nav h4{font-family:'Monoton',cursive;font-size:30px;text-align:center;margin-bottom:8px;color:var(--gold);text-shadow:0 0 14px var(--gold)}
+  nav button{display:block;width:100%;text-align:left;margin:13px 0;padding:14px 16px;font-family:'Righteous',cursive;font-size:17px;
+    color:var(--c);background:rgba(14,0,33,.7);border:3px solid var(--c);border-radius:40px;box-shadow:0 0 12px var(--c);cursor:pointer}
+  nav button:active{transform:scale(.96)}
+  nav .nh{--c:#fff}nav .n0{--c:var(--gold)}nav .n1{--c:var(--cyan)}nav .n2{--c:var(--lime)}
+  nav .n3{--c:var(--pink)}nav .n4{--c:var(--orange)}nav .n5{--c:#d9b3ff}
+
+  footer{position:relative;z-index:3;text-align:center;padding:24px 16px 50px;font-family:'Righteous',cursive;font-size:13px;line-height:1.7;
+    color:var(--gold);text-shadow:0 0 8px var(--gold)}
+  canvas{position:fixed;inset:0;z-index:60;pointer-events:none}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="beam b1"></div><div class="beam b2"></div><div class="beam b3"></div>
+<div class="floor"></div>
+
+<header>
+  <div class="logo" id="siteName">SHIQ</div>
+  <button id="burger" aria-label="Menu"><span></span><span></span><span></span></button>
+</header>
+<div class="ticker"><div id="tick"></div></div>
+
+<div id="dim"></div>
+<nav id="menu"></nav>
+<canvas id="fx"></canvas>
+
+<main><div id="view"></div></main>
+
+<footer>
+  ✦ THE FLOOR IS ALWAYS OPEN ✦ SEQUINS REQUIRED ✦<br>
+  FRESH DROPS 2-3 TIMES A DAY • NO REFUNDS
+</footer>
+
+<script src="content.js"></script>
+<script>
+  const META = {
+    notfamous:{n:"Not Famous",ic:"⭐",sub:"Legends nobody has put on a billboard. Yet."},
+    underrated:{n:"Low key underrated stuff",ic:"💎",sub:"Hidden gems at below-market hype."},
+    projects:{n:"Project under work",ic:"🚧",sub:"Under construction. Hard hats mandatory."},
+    blogs:{n:"Backchodi urf Blogs",ic:"🗣️",sub:"Unfiltered. Unlawyered. Unbothered."},
+    reading:{n:"What I read today",ic:"📖",sub:"Today's intake, served fresh."},
+    gyaan:{n:"Gyaan becho",ic:"💰",sub:"Free consultation. Always."}
+  };
+  const KEYS = Object.keys(META);
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+  $('siteName').textContent = SITE.name;
+  const line = ["🪩 "+SITE.tagline.toUpperCase(),"🕺 DANCE FLOOR OPEN","💃 TONIGHT ONLY, EVERY NIGHT","✨ SEQUINS REQUIRED","🔥 FRESH DROPS 2-3 TIMES A DAY","🪩 GYAAN SERVED HOT"].join("   ✦   ")+"   ✦   ";
+  $('tick').textContent = line.repeat(3);
+
+  $('menu').innerHTML = '<h4>THE MENU</h4><button class="nh" data-k="home">🪩 The Dance Floor</button>' +
+    KEYS.map((k,i)=>`<button class="n${i}" data-k="${k}">${META[k].ic} ${META[k].n}</button>`).join('');
+  function toggle(open){
+    $('menu').classList.toggle('open',open);$('dim').classList.toggle('open',open);$('burger').classList.toggle('x',open);
+  }
+  $('burger').onclick=()=>toggle(!$('menu').classList.contains('open'));
+  $('dim').onclick=()=>toggle(false);
+  $('siteName').onclick=()=>go('home');
+  document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>go(b.dataset.k));
+
+  function home(){
+    const tiles = KEYS.map((k,i)=>{
+      const items=CONTENT[k]||[];
+      const latest=items[0]?esc(items[0].title):"Nothing yet";
+      return `<div class="tile t${i}" data-k="${k}"><em>${items.length}</em><span class="ic">${META[k].ic}</span><b>${META[k].n}</b><i>Latest: ${latest}</i></div>`;
+    }).join('');
+    return `<div class="stage"><div class="string"></div><div class="ball"></div>
+      <div class="burst">LIVE<br>2-3x<br>DAILY</div>
+      <h1 class="neon">DISCO ${esc(SITE.name)}</h1>
+      <div class="tag">TONIGHT'S SHOW: THE HOTTEST GYAAN IN TOWN</div></div>
+      <h2 class="sec">PICK YOUR ROOM</h2><span class="sub">Six rooms. Zero chill.</span>
+      <div class="tiles">${tiles}</div>`;
+  }
+  function section(k){
+    const items=CONTENT[k]||[];
+    const cards=items.length?items.map((i,n)=>`<div class="card" style="animation-delay:${n*70}ms">${n===0?'<span class="new">FRESH!</span>':''}
+      <span class="date">${esc(i.date)}</span><h3>${esc(i.title)}</h3><p>${esc(i.text)}</p></div>`).join('')
+      :'<p class="empty">Nothing here yet. Come back soon!</p>';
+    return `<h2 class="sec">${META[k].ic} ${esc(META[k].n.toUpperCase())}</h2><span class="sub">${esc(META[k].sub)}</span>${cards}
+      <button class="back" onclick="go('home')">← BACK TO THE DANCE FLOOR</button>`;
+  }
+  function go(k){
+    $('view').innerHTML = (k==='home'||!META[k]) ? home() : section(k);
+    document.querySelectorAll('.tile').forEach(t=>t.onclick=()=>go(t.dataset.k));
+    toggle(false);
+    history.replaceState(null,'','#'+(META[k]?k:'home'));
+    window.scrollTo(0,0);
+    boom(innerWidth/2,innerHeight/3);
+  }
+
+  // sparkle burst
+  const cv=$('fx'),cx=cv.getContext('2d');let P=[],run=false;
+  function size(){cv.width=innerWidth;cv.height=innerHeight}size();addEventListener('resize',size);
+  const COL=['#ff2e93','#ffd23f','#00e5ff','#b6ff00','#d9b3ff','#ff7a00','#ffffff'];
+  function boom(x,y){
+    for(let i=0;i<55;i++)P.push({x,y,vx:(Math.random()-.5)*13,vy:Math.random()*-11-2,r:Math.random()*6+4,c:COL[i%COL.length],a:1,s:Math.random()*.3-.15,t:Math.random()*6});
+    if(!run){run=true;requestAnimationFrame(tick)}
+  }
+  function tick(){
+    cx.clearRect(0,0,cv.width,cv.height);
+    P=P.filter(p=>p.a>0.02);
+    P.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.3;p.vx*=.99;p.t+=p.s;p.a-=.013;
+      cx.save();cx.globalAlpha=p.a;cx.translate(p.x,p.y);cx.rotate(p.t);cx.fillStyle=p.c;cx.shadowColor=p.c;cx.shadowBlur=10;
+      cx.beginPath();cx.moveTo(0,-p.r);cx.lineTo(p.r/2.5,0);cx.lineTo(0,p.r);cx.lineTo(-p.r/2.5,0);cx.closePath();cx.fill();cx.restore()});
+    if(P.length)requestAnimationFrame(tick);else{run=false;cx.clearRect(0,0,cv.width,cv.height)}
+  }
+  addEventListener('pointerdown',e=>{if(!e.target.closest('nav,#burger'))boom(e.clientX,e.clientY)});
+
+  go(location.hash.slice(1)||'home');
+</script>
+</body>
+</html>
