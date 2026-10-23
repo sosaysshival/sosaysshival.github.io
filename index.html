@@ -77,6 +77,15 @@
   .ed button.pri{background:var(--ink);color:var(--paper)}
   .ed .msg{font-size:14px;margin-top:12px;min-height:20px;line-height:1.4}
   .ed .thumbs img{width:64px;height:64px;object-fit:cover;margin:8px 8px 0 0;border:2px solid var(--ink)}
+  .newsbar{display:flex;align-items:center;gap:10px;padding:9px 14px;background:var(--ink);color:var(--cream);text-decoration:none;border-bottom:1px solid var(--line);font-size:15px}
+  .newsbar[hidden]{display:none}
+  .newsbar .nb{flex:none;padding:3px 9px;background:#f4e6a8;color:var(--ink);font-size:13px;letter-spacing:2px;animation:flash 1s steps(1) infinite}
+  .newsbar #nbt{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .newsbar .go{flex:none}
+  @keyframes flash{50%{background:#c0392b;color:#fff}}
+  .lnk{display:inline-block;margin:12px 8px 0 0;padding:8px 14px;border:1px solid var(--ink);border-radius:4px;color:var(--ink);text-decoration:none;font-size:14px;background:rgba(255,255,255,.35)}
+  .leaf .item{margin:0 0 14px}
+  .leaf .item h3{margin-bottom:4px}
   .back{margin-top:10px;background:transparent;border:1px solid var(--ink);font-family:inherit;font-size:14px;color:var(--ink);
     padding:10px 16px;border-radius:4px;cursor:pointer}
 
@@ -101,10 +110,23 @@
 </head>
 <body>
 
+<script>
+  // shows any page error on screen, so problems can be diagnosed from a phone
+  window.addEventListener('error',function(e){
+    var d=document.getElementById('errbar');
+    if(!d){d=document.createElement('div');d.id='errbar';
+      d.style.cssText='position:fixed;left:0;right:0;bottom:0;z-index:999;background:#fff;color:#a00;border-top:3px solid #a00;padding:10px 12px;font:13px/1.4 monospace;white-space:pre-wrap';
+      document.body.appendChild(d)}
+    d.textContent='Something broke: '+(e.message||'unknown error')+(e.lineno?' (line '+e.lineno+')':'')+'\nSend this exact message to Claude.';
+  });
+</script>
+
 <header>
   <div class="logo" id="siteName">SO SAYS SHIVAL</div>
   <button id="burger" aria-label="Menu"><span></span><span></span><span></span></button>
 </header>
+
+<a id="newsbar" class="newsbar" href="#" target="_blank" rel="noopener" hidden><span class="nb">WHAT'S NEW?</span><span id="nbt"></span><span class="go">&rarr;</span></a>
 
 <div id="dim"></div>
 <nav id="menu"></nav>
@@ -113,6 +135,7 @@
 <footer>written by hand, updated daily<br><a href="#" id="wr" style="color:inherit">&#9998; write</a></footer>
 
 <script src="content.js"></script>
+<script src="profile.js"></script>
 <script>
   const TITLE = "SO SAYS SHIVAL";
   const TAGLINE = "Bolo Vats! What's up? Anything new?";
@@ -133,16 +156,43 @@
   function rebuild(){
     DATA = {};
     KEYS.forEach(k=>{DATA[k] = ENTRIES.filter(e=>e.section===k).concat(BASE[k]||[])});
+    renderBanner();
+  }
+  // flashing "What's New?" banner: cycles through your latest links, tap opens the link
+  let nbTimer = null, nbIdx = 0;
+  function renderBanner(){
+    const bar = document.getElementById('newsbar'); if(!bar) return;
+    const items = (DATA.news||[]).filter(i=>safeUrl(i.url)).slice(0,6);
+    clearInterval(nbTimer);
+    bar.hidden = false;
+    if(!items.length){
+      bar.removeAttribute('href');
+      document.getElementById('nbt').textContent = 'No links yet. Post one with ✎ write at the bottom.';
+      return;
+    }
+    const show = () => {
+      const i = items[nbIdx % items.length];
+      bar.href = i.url.trim();
+      document.getElementById('nbt').textContent = i.title || i.url;
+      nbIdx++;
+    };
+    nbIdx = 0; show();
+    if(items.length>1) nbTimer = setInterval(show,4000);
   }
   const META = {
-    notfamous:{n:"Not Famous",no:"i",sub:"People and places the world forgot to notice."},
-    underrated:{n:"Low key underrated stuff",no:"ii",sub:"Quiet things that deserve more attention."},
-    projects:{n:"Project under work",no:"iii",sub:"Work in progress."},
-    blogs:{n:"Backchodi urf Blogs",no:"iv",sub:"Unfiltered thoughts."},
-    reading:{n:"What I read today",no:"v",sub:"Today's reading."},
-    gyaan:{n:"Gyaan becho",no:"vi",sub:"Lessons, freely shared."}
+    about:{n:"About Me",no:"i",sub:"The person behind the page.",page:1},
+    cv:{n:"CV",no:"ii",sub:"Experience, education and skills.",page:1},
+    underrated:{n:"Low key underrated stuff",no:"iii",sub:"Quiet things that deserve more attention."},
+    projects:{n:"Project under work",no:"iv",sub:"Work in progress."},
+    blogs:{n:"Backchodi urf Blogs",no:"v",sub:"Unfiltered thoughts."},
+    reading:{n:"What I read today",no:"vi",sub:"Today's reading."},
+    news:{n:"What's New?",no:"",sub:"Links I found worth sharing."}
   };
   const KEYS = Object.keys(META);
+  const TILES = KEYS.filter(k=>k!=='news');
+  const WKEYS = KEYS.filter(k=>!META[k].page);
+  const safeUrl = u => /^https?:\/\//i.test(String(u||'').trim());
+  const safeFile = f => /^[\w\-.\/]+$/.test(String(f||''));
   const $ = id => document.getElementById(id);
   const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -285,9 +335,10 @@
   </svg>`;
 
   function home(){
-    const tiles = KEYS.map(k=>{
+    const tiles = TILES.map(k=>{
       const items = DATA[k]||[];
-      return `<button class="tile" data-k="${k}"><span class="no">${META[k].no}.</span><b>${esc(META[k].n)}</b><i>${items.length} ${items.length===1?'entry':'entries'}</i></button>`;
+      const foot = META[k].page ? 'read' : items.length+' '+(items.length===1?'entry':'entries');
+      return `<button class="tile" data-k="${k}"><span class="no">${META[k].no}.</span><b>${esc(META[k].n)}</b><i>${foot}</i></button>`;
     }).join('');
     return `${HAS?'':'<div class="warn">content.js was not found. Check that the file is named exactly content.js (no extra s) in the same folder as index.html.</div>'}
       <div class="scene">${SCENE}</div>
@@ -296,13 +347,37 @@
       <div class="tag" data-t>${esc(TAGLINE)}</div>
       <div class="tiles">${tiles}</div>`;
   }
+  const head = k => `<h2 class="sec" data-t>${esc(META[k].n)}</h2><p class="sub">${esc(META[k].sub)}</p>`;
+  const backBtn = `<button class="back" onclick="go('home')">&larr; back</button>`;
+  function aboutPage(){
+    const a = (typeof ABOUT!=='undefined') ? ABOUT : {};
+    const pic = safeFile(a.photo) && a.photo ? `<img class="pic" src="${esc(a.photo)}" alt="">` : '';
+    return head('about') + `<div class="leaf">${pic}<p>${esc(a.text||'Open profile.js on GitHub and write about yourself there.')}</p></div>` + backBtn;
+  }
+  function cvPage(){
+    const c = (typeof CV!=='undefined') ? CV : {};
+    let h = head('cv');
+    if(c.file && safeFile(c.file)) h += `<a class="lnk" href="${esc(c.file)}" target="_blank" rel="noopener">&darr; download CV (PDF)</a>`;
+    if(c.summary) h += `<div class="leaf"><span class="date">SUMMARY</span><p>${esc(c.summary)}</p></div>`;
+    const ex = c.experience||[];
+    if(ex.length) h += `<div class="leaf"><span class="date">EXPERIENCE</span>` + ex.map(e=>
+      `<div class="item"><h3>${esc(e.role||'')}${e.org?' — '+esc(e.org):''}</h3><span class="date">${esc(e.period||'')}</span><p>${(e.points||[]).map(p=>'• '+esc(p)).join('\n')}</p></div>`).join('') + `</div>`;
+    const ed = c.education||[];
+    if(ed.length) h += `<div class="leaf"><span class="date">EDUCATION</span>` + ed.map(e=>
+      `<div class="item"><h3>${esc(e.degree||'')}${e.org?' — '+esc(e.org):''}</h3><span class="date">${esc(e.period||'')}</span></div>`).join('') + `</div>`;
+    if((c.skills||[]).length) h += `<div class="leaf"><span class="date">SKILLS</span><p>${c.skills.map(esc).join('  •  ')}</p></div>`;
+    if(!c.summary && !ex.length && !ed.length && !(c.skills||[]).length && !c.file) h += '<p class="empty">Open profile.js on GitHub and fill in your CV there.</p>';
+    return h + backBtn;
+  }
   function section(k){
+    if(k==='about') return aboutPage();
+    if(k==='cv') return cvPage();
     const items = DATA[k]||[];
     const cards = items.length ? items.map((i,n)=>{
       const t = n<3 ? ' data-t' : '';
       const pics = [].concat(i.img||[]).map(p=>`<img class="pic" src="${esc(p)}" alt="${esc(i.title)}" loading="lazy">`).join('');
       const term = esc(i.id || (k+':'+i.date+':'+i.title));
-      return `<div class="leaf"><span class="date"${t}>${esc(i.date)}</span><h3${t}>${esc(i.title)}</h3>${pics}<p${t}>${esc(i.text)}</p><button class="cbtn" data-term="${term}">&#9998; comments</button>${adminBtns(i)}</div><div class="cwrap" hidden></div>`;
+      return `<div class="leaf"><span class="date"${t}>${esc(i.date)}</span><h3${t}>${esc(i.title)}</h3>${pics}<p${t}>${esc(i.text)}</p>${safeUrl(i.url)?`<a class="lnk" href="${esc(i.url.trim())}" target="_blank" rel="noopener">open link &rarr;</a>`:''}<button class="cbtn" data-term="${term}">&#9998; comments</button>${adminBtns(i)}</div><div class="cwrap" hidden></div>`;
     }).join('') : '<p class="empty">Nothing written here yet.</p>';
     return `<h2 class="sec" data-t>${esc(META[k].n)}</h2><p class="sub">${esc(META[k].sub)}</p>${cards}
       <button class="back" onclick="go('home')">&larr; back</button>`;
@@ -314,4 +389,179 @@
     if(box.dataset.ready) return;
     box.dataset.ready = '1';
     if(!GISCUS.repoId || !GISCUS.categoryId){
-      box.innerHTML 
+      box.innerHTML = '<p class="empty">Comments are not switched on yet.</p>';
+      return;
+    }
+    const s = document.createElement('script');
+    s.src = 'https://giscus.app/client.js';
+    const a = {'data-repo':GISCUS.repo,'data-repo-id':GISCUS.repoId,'data-category':GISCUS.category,'data-category-id':GISCUS.categoryId,
+      'data-mapping':'specific','data-term':btn.dataset.term,'data-strict':'0','data-reactions-enabled':'1','data-emit-metadata':'0',
+      'data-input-position':'top','data-theme':'light','data-lang':'en','crossorigin':'anonymous'};
+    Object.keys(a).forEach(x=>s.setAttribute(x,a[x]));
+    s.async = true;
+    box.appendChild(s);
+  }
+  function go(k){
+    const key = META[k] ? k : 'home';
+    $('view').innerHTML = key==='home' ? home() : section(key);
+    document.querySelectorAll('.tile').forEach(t=>t.onclick=()=>go(t.dataset.k));
+    document.querySelectorAll('.cbtn').forEach(b=>b.onclick=()=>toggleComments(b));
+    document.querySelectorAll('[data-ed]').forEach(b=>b.onclick=()=>openEditor(b.dataset.ed));
+    document.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>delEntry(b.dataset.del));
+    toggle(false);
+    history.replaceState(null,'','#'+key);
+    window.scrollTo(0,0);
+    typeAll($('view'), 26);
+  }
+  window.go = go;
+  // ---------- in-page writer: publishes straight to your repo ----------
+  const OWNER = 'sosaysshival', REPO = 'sosaysshival.github.io', BRANCH = 'main';
+  const getToken = () => { try{return localStorage.getItem('shiq_token')||''}catch(e){return ''} };
+  const setToken = v => { try{localStorage.setItem('shiq_token',v)}catch(e){} };
+  const API = p => `https://api.github.com/repos/${OWNER}/${REPO}/contents/${p}`;
+  const hdr = () => ({'Authorization':'Bearer '+getToken(),'Accept':'application/vnd.github+json'});
+  const b64 = s => btoa(unescape(encodeURIComponent(s)));
+  const unb64 = s => decodeURIComponent(escape(atob(s.replace(/\n/g,''))));
+
+  function adminBtns(i){
+    return (i._own && getToken()) ? `<button class="abtn" data-ed="${esc(i.id)}">edit</button><button class="abtn" data-del="${esc(i.id)}">delete</button>` : '';
+  }
+  async function loadEntries(){
+    try{
+      const r = await fetch('entries.json?v='+Date.now(),{cache:'no-store'});
+      if(r.ok){const j = await r.json(); ENTRIES = (j.entries||[]).map(e=>Object.assign({_own:true},e));}
+    }catch(e){}
+    rebuild();
+  }
+  async function readRemote(){
+    const r = await fetch(API('entries.json')+'?ref='+BRANCH+'&t='+Date.now(),{headers:hdr(),cache:'no-store'});
+    if(r.status===404) return {sha:null,list:[]};
+    if(!r.ok) throw new Error('Could not read your site (check the token), code '+r.status);
+    const j = await r.json();
+    return {sha:j.sha,list:(JSON.parse(unb64(j.content)).entries||[])};
+  }
+  async function writeRemote(list,sha,msg){
+    const body = {message:msg,content:b64(JSON.stringify({entries:list},null,1)),branch:BRANCH};
+    if(sha) body.sha = sha;
+    const r = await fetch(API('entries.json'),{method:'PUT',headers:Object.assign({'Content-Type':'application/json'},hdr()),body:JSON.stringify(body)});
+    if(!r.ok) throw new Error('Could not save, code '+r.status+' (token needs Contents: Read and write)');
+  }
+  function shrink(file){
+    return new Promise((res,rej)=>{
+      const fr = new FileReader();
+      fr.onerror = () => rej(new Error('Could not read the photo'));
+      fr.onload = () => {
+        const im = new Image();
+        im.onerror = () => rej(new Error('That file is not a usable image'));
+        im.onload = () => {
+          const m = 1280, s = Math.min(1, m/Math.max(im.width,im.height));
+          const c = document.createElement('canvas');
+          c.width = Math.round(im.width*s); c.height = Math.round(im.height*s);
+          c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+          res(c.toDataURL('image/jpeg',0.82).split(',')[1]);
+        };
+        im.src = fr.result;
+      };
+      fr.readAsDataURL(file);
+    });
+  }
+  async function uploadPhoto(file,path){
+    const data = await shrink(file);
+    const r = await fetch(API(path),{method:'PUT',headers:Object.assign({'Content-Type':'application/json'},hdr()),body:JSON.stringify({message:'photo',content:data,branch:BRANCH})});
+    if(!r.ok) throw new Error('Photo upload failed, code '+r.status);
+  }
+
+  const ED = document.createElement('div');
+  ED.className = 'ed-overlay';
+  document.body.appendChild(ED);
+  function closeEd(){ED.classList.remove('open');ED.innerHTML=''}
+
+  function askToken(next){
+    ED.innerHTML = `<div class="ed"><h4>One-time setup</h4>
+      <p style="font-size:15px;line-height:1.5;margin-top:6px">Paste your GitHub token. It is stored only in this phone's browser.</p>
+      <label>TOKEN</label><input type="password" id="t_in" placeholder="github_pat_...">
+      <div class="msg" id="t_msg"></div>
+      <div class="row"><button class="pri" id="t_ok">Save</button><button id="t_x">Cancel</button></div></div>`;
+    ED.classList.add('open');
+    $('t_x').onclick = closeEd;
+    $('t_ok').onclick = async () => {
+      const v = $('t_in').value.trim();
+      if(!v) return;
+      setToken(v);
+      $('t_msg').textContent = 'Checking...';
+      try{
+        const r = await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO,{headers:hdr()});
+        if(!r.ok) throw new Error('Token not accepted, code '+r.status);
+        if(next) next(); else closeEd();
+      }catch(e){ setToken(''); $('t_msg').textContent = e.message; }
+    };
+  }
+
+  function openEditor(id){
+    if(!getToken()){ askToken(()=>openEditor(id)); return; }
+    const editing = id ? ENTRIES.find(e=>e.id===id) : null;
+    const e = editing || {section:(META[location.hash.slice(1)]?location.hash.slice(1):'blogs'),title:'',text:'',img:[]};
+    ED.innerHTML = `<div class="ed"><h4>${editing?'Edit entry':'New entry'}</h4>
+      <label>SECTION</label><select id="e_sec">${WKEYS.map(k=>`<option value="${k}"${k===e.section?' selected':''}>${esc(META[k].n)}</option>`).join('')}</select>
+      <label>TITLE</label><input type="text" id="e_title" value="${esc(e.title)}">
+      <label>LINK (REQUIRED FOR WHAT'S NEW?, OPTIONAL ELSEWHERE)</label><input type="text" id="e_url" placeholder="https://..." value="${esc(e.url||'')}">
+      <label>WRITE HERE, JUST LIKE NOTES</label><textarea id="e_text">${esc(e.text)}</textarea>
+      <label>PHOTOS (OPTIONAL)</label><input type="file" id="e_img" accept="image/*" multiple>
+      <div class="thumbs" id="e_th"></div>
+      <div class="msg" id="e_msg"></div>
+      <div class="row"><button class="pri" id="e_go">Publish</button><button id="e_x">Cancel</button></div>
+      <div class="row"><button id="e_tk">Change token</button></div></div>`;
+    ED.classList.add('open');
+    $('e_x').onclick = closeEd;
+    $('e_tk').onclick = () => askToken(()=>openEditor(id));
+    $('e_img').onchange = () => {
+      $('e_th').innerHTML = [...$('e_img').files].map(f=>`<img src="${URL.createObjectURL(f)}" alt="">`).join('');
+    };
+    $('e_go').onclick = async () => {
+      const msg = $('e_msg'), btn = $('e_go');
+      const title = $('e_title').value.trim(), text = $('e_text').value.trim(), sec = $('e_sec').value, files = [...$('e_img').files];
+      const url = $('e_url').value.trim();
+      if(!title && !text){ msg.textContent = 'Write something first.'; return; }
+      if(url && !safeUrl(url)){ msg.textContent = 'The link must start with https://'; return; }
+      if(sec==='news' && !url){ msg.textContent = "A What's New? post needs a link."; return; }
+      btn.disabled = true; msg.textContent = 'Publishing...';
+      try{
+        const eid = editing ? editing.id : 'e'+Date.now();
+        const imgs = (editing && editing.img) ? editing.img.slice() : [];
+        for(let n=0;n<files.length;n++){
+          msg.textContent = 'Uploading photo '+(n+1)+' of '+files.length+'...';
+          const path = 'photos/'+eid+'-'+(n+1)+'-'+Math.floor(Math.random()*100000)+'.jpg';
+          await uploadPhoto(files[n],path);
+          imgs.push(path);
+        }
+        msg.textContent = 'Saving...';
+        const rem = await readRemote();
+        const date = editing ? editing.date : new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+        const entry = {id:eid,section:sec,date:date,title:title,text:text,img:imgs,url:url};
+        const idx = rem.list.findIndex(x=>x.id===eid);
+        if(idx>=0) rem.list[idx] = entry; else rem.list.unshift(entry);
+        await writeRemote(rem.list,rem.sha,'entry');
+        ENTRIES = rem.list.map(x=>Object.assign({_own:true},x));
+        rebuild(); closeEd(); go(sec);
+      }catch(err){ msg.textContent = 'Problem: '+err.message; btn.disabled = false; }
+    };
+  }
+
+  async function delEntry(id){
+    if(!confirm('Delete this entry?')) return;
+    try{
+      const rem = await readRemote();
+      const nl = rem.list.filter(x=>x.id!==id);
+      await writeRemote(nl,rem.sha,'delete entry');
+      ENTRIES = nl.map(x=>Object.assign({_own:true},x));
+      rebuild(); go(location.hash.slice(1)||'home');
+    }catch(err){ alert('Problem: '+err.message); }
+  }
+  $('wr').onclick = ev => { ev.preventDefault(); openEditor(); };
+
+  rebuild();
+  go(location.hash.slice(1)||'home');
+  loadEntries().then(()=>{ if(ENTRIES.length) go(location.hash.slice(1)||'home'); });
+</script>
+</body>
+</html>
