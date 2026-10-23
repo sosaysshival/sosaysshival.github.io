@@ -60,6 +60,23 @@
   .leaf h3{font-weight:400;font-size:20px;line-height:1.3;margin-bottom:8px}
   .leaf p{font-size:16px;line-height:1.55;white-space:pre-wrap}
   .empty{color:var(--soft);margin:18px 0}
+  .pic{display:block;width:100%;height:auto;margin:6px 0 12px;border:7px solid #f6f2e6;box-shadow:0 2px 6px rgba(0,0,0,.35);filter:sepia(.12)}
+  .cbtn{margin-top:12px;background:transparent;border:1px solid var(--ink);border-radius:4px;font-family:inherit;font-size:13px;color:var(--ink);padding:7px 12px;cursor:pointer}
+  .cwrap{background:#fbfaf7;border:1px solid var(--line);border-radius:8px;padding:10px;margin:-6px 0 18px}
+  .cwrap[hidden]{display:none}
+  .abtn{margin:12px 0 0 8px;background:transparent;border:1px solid var(--ink);border-radius:4px;font-family:inherit;font-size:13px;color:var(--ink);padding:7px 12px;cursor:pointer}
+  .ed-overlay{position:fixed;inset:0;z-index:80;background:rgba(40,35,30,.6);display:none;overflow-y:auto;padding:12px}
+  .ed-overlay.open{display:block}
+  .ed{max-width:560px;margin:16px auto;background:var(--paper);border:2px solid var(--ink);border-radius:8px;padding:16px;box-shadow:6px 6px 0 var(--ink)}
+  .ed h4{font-weight:400;font-size:20px;margin-bottom:6px}
+  .ed label{display:block;font-size:12px;color:var(--soft);margin:14px 0 4px;letter-spacing:2px}
+  .ed input[type=text],.ed input[type=password],.ed select,.ed textarea{width:100%;font-family:inherit;font-size:16px;padding:10px;border:1px solid var(--ink);background:#fff;border-radius:4px;color:var(--ink)}
+  .ed textarea{min-height:240px;line-height:1.5;resize:vertical}
+  .ed .row{display:flex;gap:10px;margin-top:16px}
+  .ed button{font-family:inherit;font-size:15px;padding:11px 16px;border:2px solid var(--ink);border-radius:4px;cursor:pointer;background:transparent;color:var(--ink)}
+  .ed button.pri{background:var(--ink);color:var(--paper)}
+  .ed .msg{font-size:14px;margin-top:12px;min-height:20px;line-height:1.4}
+  .ed .thumbs img{width:64px;height:64px;object-fit:cover;margin:8px 8px 0 0;border:2px solid var(--ink)}
   .back{margin-top:10px;background:transparent;border:1px solid var(--ink);font-family:inherit;font-size:14px;color:var(--ink);
     padding:10px 16px;border-radius:4px;cursor:pointer}
 
@@ -93,7 +110,7 @@
 <nav id="menu"></nav>
 
 <main><div id="view"></div></main>
-<footer>written by hand, updated daily</footer>
+<footer>written by hand, updated daily<br><a href="#" id="wr" style="color:inherit">&#9998; write</a></footer>
 
 <script src="content.js"></script>
 <script>
@@ -101,8 +118,22 @@
   const TAGLINE = "Bolo Vats! What's up? Anything new?";
   const QUOTE = "Problems are overrated. Permanence is eternal. Faith transcends all of us, and there is only one GOAT: HUMANITY.";
 
+  // COMMENTS (giscus). Paste the two values from giscus.app between the quotes.
+  const GISCUS = {
+    repo: "sosaysshival/sosaysshival.github.io",
+    repoId: "",
+    category: "Announcements",
+    categoryId: ""
+  };
+
   const HAS = (typeof CONTENT !== 'undefined');
-  const DATA = HAS ? CONTENT : {};
+  const BASE = HAS ? CONTENT : {};
+  let DATA = {};
+  let ENTRIES = [];
+  function rebuild(){
+    DATA = {};
+    KEYS.forEach(k=>{DATA[k] = ENTRIES.filter(e=>e.section===k).concat(BASE[k]||[])});
+  }
   const META = {
     notfamous:{n:"Not Famous",no:"i",sub:"People and places the world forgot to notice."},
     underrated:{n:"Low key underrated stuff",no:"ii",sub:"Quiet things that deserve more attention."},
@@ -269,22 +300,18 @@
     const items = DATA[k]||[];
     const cards = items.length ? items.map((i,n)=>{
       const t = n<3 ? ' data-t' : '';
-      return `<div class="leaf"><span class="date"${t}>${esc(i.date)}</span><h3${t}>${esc(i.title)}</h3><p${t}>${esc(i.text)}</p></div>`;
+      const pics = [].concat(i.img||[]).map(p=>`<img class="pic" src="${esc(p)}" alt="${esc(i.title)}" loading="lazy">`).join('');
+      const term = esc(i.id || (k+':'+i.date+':'+i.title));
+      return `<div class="leaf"><span class="date"${t}>${esc(i.date)}</span><h3${t}>${esc(i.title)}</h3>${pics}<p${t}>${esc(i.text)}</p><button class="cbtn" data-term="${term}">&#9998; comments</button>${adminBtns(i)}</div><div class="cwrap" hidden></div>`;
     }).join('') : '<p class="empty">Nothing written here yet.</p>';
     return `<h2 class="sec" data-t>${esc(META[k].n)}</h2><p class="sub">${esc(META[k].sub)}</p>${cards}
       <button class="back" onclick="go('home')">&larr; back</button>`;
   }
-  function go(k){
-    const key = META[k] ? k : 'home';
-    $('view').innerHTML = key==='home' ? home() : section(key);
-    document.querySelectorAll('.tile').forEach(t=>t.onclick=()=>go(t.dataset.k));
-    toggle(false);
-    history.replaceState(null,'','#'+key);
-    window.scrollTo(0,0);
-    typeAll($('view'), 26);
-  }
-  window.go = go;
-  go(location.hash.slice(1)||'home');
-</script>
-</body>
-</html>
+  function toggleComments(btn){
+    const box = btn.closest('.leaf').nextElementSibling;
+    if(!box.hidden){box.hidden = true;return}
+    box.hidden = false;
+    if(box.dataset.ready) return;
+    box.dataset.ready = '1';
+    if(!GISCUS.repoId || !GISCUS.categoryId){
+      box.innerHTML 
